@@ -1,9 +1,11 @@
 package view;
 
-public class MainAction {
+public class GameAction {
     private String type;
     private int player;
     private int color;
+
+
 
     public String getType() {
         return type;

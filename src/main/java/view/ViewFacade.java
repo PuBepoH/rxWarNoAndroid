@@ -8,6 +8,6 @@ import presenter.PresenterFacade;
 public interface ViewFacade {
     public void initialize(PresenterFacade presenterFacade);
     public PublishSubject<String> getMenuActions();
-    public PublishSubject<MainAction> getMainActions();
+    public PublishSubject<GameAction> getGameActions();
     public PublishSubject<NewAction> getNewActions();
 }

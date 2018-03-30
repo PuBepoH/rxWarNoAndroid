@@ -5,7 +5,11 @@ public class GameAction {
     private int player;
     private int color;
 
-
+    public GameAction(String type, int player, int color){
+        this.type=type;
+        this.player=player;
+        this.color=color;
+    }
 
     public String getType() {
         return type;

@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class TestView implements ViewFacade{
     private CompositeDisposable externalDiposables = new CompositeDisposable();
@@ -35,6 +36,7 @@ public class TestView implements ViewFacade{
         });
         inputFlow = rawFlow
                 .map(s -> s.split(" "))
+                .filter(o->o.length>1)
                 .subscribeOn(Schedulers.io())
                 .publish();
         //menu
@@ -54,12 +56,24 @@ public class TestView implements ViewFacade{
         //newAction
         internalDisposables.add(inputFlow
                 .filter(s->s[0].equals("n"))
-                .filter(s->(s[1].equals("+"))|(s[1].equals("-")))
-                .map(s -> new NewAction(Integer.valueOf(s[2]),Integer.valueOf(s[3]),s[1].equals("+")))
+                .filter(s->(s[1].equals("new")&s.length>3)|s[1].equals("back"))
+                .<NewAction>flatMap(o->Observable.create(s->{
+                    try {
+                        boolean t = o[1].equals("new");
+                        s.onNext(new NewAction(t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0, o[1].equals("new")));
+                    } catch (Exception e) {
+                    }
+                }))
                 .subscribe(newActions::onNext));
         //gameActions
         internalDisposables.add(inputFlow
                 .filter(s->s[0].equals("g"))
+                .filter(s->(s[1].equals("turn")&s.length>3)|s[1].equals("back"))
+                .map(s-> {
+                    boolean t=s[1].equals("turn");
+                    return new GameAction(t?"turn":"back",t?Integer.valueOf(s[2]):0,t?Integer.valueOf(s[3]):0);
+                })
+                .subscribe(gameActions::onNext));
 
         internalDisposables.add(inputFlow.connect());
     }

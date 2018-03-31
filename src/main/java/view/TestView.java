@@ -45,7 +45,7 @@ public class TestView implements ViewFacade{
                 .filter(s-> {
                     switch (s[1]) {
                         case "resume":
-                        case "new game":
+                        case "new":
                         case "exit":
                             return true;
                         default:
@@ -63,16 +63,21 @@ public class TestView implements ViewFacade{
                         s.onNext(new NewAction(t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0, o[1].equals("new")));
                     } catch (Exception e) {
                     }
+                    s.onComplete();
                 }))
                 .subscribe(newActions::onNext));
         //gameActions
         internalDisposables.add(inputFlow
                 .filter(s->s[0].equals("g"))
                 .filter(s->(s[1].equals("turn")&s.length>3)|s[1].equals("back"))
-                .map(s-> {
-                    boolean t=s[1].equals("turn");
-                    return new GameAction(t?"turn":"back",t?Integer.valueOf(s[2]):0,t?Integer.valueOf(s[3]):0);
-                })
+                .<GameAction>flatMap(o->Observable.create(s-> {
+                    try {
+                        boolean t = o[1].equals("turn");
+                        s.onNext(new GameAction(t ? "turn" : "back", t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0));
+                    } catch (Exception e) {
+                    }
+                    s.onComplete();
+                }))
                 .subscribe(gameActions::onNext));
 
         internalDisposables.add(inputFlow.connect());

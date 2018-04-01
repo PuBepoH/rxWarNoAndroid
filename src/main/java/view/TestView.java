@@ -1,30 +1,32 @@
 package view;
 
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observables.ConnectableObservable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
+import javafx.util.Pair;
+import presenter.FragmentName;
+import presenter.MenuState;
 import presenter.PresenterFacade;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
 
 public class TestView implements ViewFacade{
-    private CompositeDisposable externalDiposables = new CompositeDisposable();
+    private CompositeDisposable externalDisposables = new CompositeDisposable();
     private CompositeDisposable internalDisposables = new CompositeDisposable();
 
-    private PublishSubject<String> menuActions = PublishSubject.create();
+    private PublishSubject<MenuAction> menuActions = PublishSubject.create();
     private PublishSubject<GameAction> gameActions = PublishSubject.create();
     private PublishSubject<NewAction> newActions = PublishSubject.create();
 
     private ConnectableObservable<String[]> inputFlow;
 
+
+    //STATE
     private boolean exit=false;
+    private String frame;
 
     public TestView(){
         Observable<String> rawFlow = Observable.create(s->{
@@ -42,17 +44,21 @@ public class TestView implements ViewFacade{
         //menu
         internalDisposables.add(inputFlow
                 .filter(s->s[0].equals("m"))
-                .filter(s-> {
-                    switch (s[1]) {
+                .<MenuAction>flatMap(o->Observable.create(s->{
+                    switch (o[1]) {
                         case "resume":
+                            s.onNext(MenuAction.RESUME);
+                            break;
                         case "new":
+                            s.onNext(MenuAction.NEW);
+                            break;
                         case "exit":
-                            return true;
-                        default:
-                            return false;
+                            s.onNext(MenuAction.EXIT);
+                            break;
                     }
-                })
-                .subscribe(s->menuActions.onNext(s[1])));
+                    s.onComplete();
+                }))
+                .subscribe(menuActions::onNext));
         //newAction
         internalDisposables.add(inputFlow
                 .filter(s->s[0].equals("n"))
@@ -60,7 +66,7 @@ public class TestView implements ViewFacade{
                 .<NewAction>flatMap(o->Observable.create(s->{
                     try {
                         boolean t = o[1].equals("new");
-                        s.onNext(new NewAction(t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0, o[1].equals("new")));
+                        s.onNext(new NewAction(t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0, o[1].equals("new")?NewActionType.NEW:NewActionType.BACK));
                     } catch (Exception e) {
                     }
                     s.onComplete();
@@ -73,7 +79,7 @@ public class TestView implements ViewFacade{
                 .<GameAction>flatMap(o->Observable.create(s-> {
                     try {
                         boolean t = o[1].equals("turn");
-                        s.onNext(new GameAction(t ? "turn" : "back", t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0));
+                        s.onNext(new GameAction(t ? GameActionType.TURN : GameActionType.BACK, t ? Integer.valueOf(o[2]) : 0, t ? Integer.valueOf(o[3]) : 0));
                     } catch (Exception e) {
                     }
                     s.onComplete();
@@ -85,15 +91,52 @@ public class TestView implements ViewFacade{
 
     @Override
     public void initialize(PresenterFacade presenterFacade) {
-        externalDiposables.dispose();
-        externalDiposables.clear();
-        externalDiposables.add(presenterFacade.getFragmentControlState().subscribe(System.out::println));
+        externalDisposables.dispose();
+        externalDisposables=new CompositeDisposable();
+
+        //DRAW MENU
+        externalDisposables.add(
+            Observable.combineLatest(presenterFacade.getFragmentControlState(), presenterFacade.getMenuState(), Pair::new)
+                .filter(o->o.getKey()== FragmentName.MENU)
+                .map(Pair::getValue)
+                .subscribe(this::drawMenuFragment)
+        );
+        //DRAW NEW
+        externalDisposables.add(
+                presenterFacade.getFragmentControlState()
+                .subscribe(s->{
+                    if (s==FragmentName.NEW){
+                        drawNewGameFragment();
+                    }
+                })
+        );
+        //DRAW GAME
+        externalDisposables.add(
+                Observable.combineLatest(presenterFacade.getFragmentControlState()
+                        , presenterFacade.getFieldState()
+                        ,presenterFacade.getTurnsState()
+                        ,presenterFacade.getTimerState()
+                        , (fc, fs, tus, tis)-> new Pair<>(fc,new GameState(fs,tus,tis)))
+                .filter(o->o.getKey()==FragmentName.GAME)
+                .map(Pair::getValue)
+                .subscribe(this::drawGameFragment)
+        );
     }
 
+    private void drawMenuFragment(MenuState ms) {
+        System.out.println("MENU");
+    };
+
+    private void drawNewGameFragment() {
+        System.out.println("NEW GAME");
+    };
+
+    private void drawGameFragment(GameState gs) {
+        System.out.println("GAME");
+    };
+
     @Override
-    public PublishSubject<String> getMenuActions() {
-        return menuActions;
-    }
+    public PublishSubject<MenuAction> getMenuActions() { return menuActions; }
 
     @Override
     public PublishSubject<GameAction> getGameActions() {
@@ -107,8 +150,8 @@ public class TestView implements ViewFacade{
 
     @Override
     protected void finalize() throws Throwable {
-        externalDiposables.dispose();
-        externalDiposables.clear();
+        externalDisposables.dispose();
+        externalDisposables.clear();
         internalDisposables.dispose();
         internalDisposables.clear();
         super.finalize();

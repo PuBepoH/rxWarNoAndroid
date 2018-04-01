@@ -1,15 +1,14 @@
 package view;
 
-
 public class NewAction {
-    private boolean newGame;
+    private NewActionType type;
     private int players;
     private int colors;
 
-    public NewAction(int players, int colors, boolean newGame){
+    public NewAction(int players, int colors, NewActionType type){
         this.players=players;
         this.colors=colors;
-        this.newGame=newGame;
+        this.type=type;
     }
 
     public int getPlayers() {
@@ -20,7 +19,7 @@ public class NewAction {
         return colors;
     }
 
-    public boolean isNewGame() {
-        return newGame;
+    public NewActionType isNewGame() {
+        return type;
     }
 }

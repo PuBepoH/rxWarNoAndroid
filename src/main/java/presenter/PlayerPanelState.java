@@ -22,7 +22,7 @@ public class PlayerPanelState {
     }
 
     public boolean getBlocked(int player, int color) {
-        return blocked[player][color];
+        return blocked[player-1][color-1];
     }
 
     public int getTurnOfPlayer() {

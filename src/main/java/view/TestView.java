@@ -123,15 +123,50 @@ public class TestView implements ViewFacade{
     }
 
     private void drawMenuFragment(MenuState ms) {
-        System.out.println("MENU");
+        System.out.println("[[[MENU]]]");
+        if (ms==MenuState.RESUMABLE) System.out.println("resume");
+        System.out.println("new");
+        System.out.println("exit");
     };
 
     private void drawNewGameFragment() {
-        System.out.println("NEW GAME");
+        System.out.println("[[[NEW GAME]]]");
+        System.out.println("new p c");
+        System.out.println("back");
     };
 
     private void drawGameFragment(GameState gs) {
-        System.out.println("GAME");
+        System.out.println("[[[GAME]]]");
+        System.out.println("[FIELD]");
+        for (int x=0;x<gs.getFieldState().getX()+1;x++){
+            System.out.print("--");
+        }
+        System.out.println();
+        for (int x=0;x<gs.getFieldState().getX();x++){
+            System.out.print("|");
+            for (int y=0;y<gs.getFieldState().getY();y++){
+                if (gs.getFieldState().getField()[x][y]>0) {
+                    System.out.print(gs.getFieldState().getField()[x][y]+" ");
+                } else {
+                    System.out.print("  ");
+                }
+            }
+            System.out.println("|");
+        }
+        for (int x=0;x<gs.getFieldState().getX()+1;x++){
+            System.out.print("--");
+        }
+        System.out.println();
+        System.out.println("[TIMER]");
+        System.out.println(gs.getTimerState());
+        System.out.println("[PLAYER PANELS]");
+        for (int x=1;x<=gs.getPlayerPanelState().getNumberOfPlayers();x++){
+            for (int y=1;y<=gs.getPlayerPanelState().getNumberOfColors();y++){
+                System.out.print((gs.getPlayerPanelState().getBlocked(x,y)?"+":"-")+" ");
+            }
+            if (gs.getPlayerPanelState().getTurnOfPlayer()==x+1) System.out.print("<--");
+            System.out.println();
+        }
     };
 
     @Override

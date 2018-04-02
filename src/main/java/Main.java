@@ -21,9 +21,13 @@ public class Main {
         //v.getNewActions().subscribe(o->System.out.println("n: "+o.getType()+" "+o.getPlayers()+" "+o.getColors()));
         //v.getGameActions().subscribe(o->System.out.println("g: "+o.getType()+" "+o.getPlayer()+" "+o.getColor()));
 
-        System.out.println("GO");
+        //m.getFieldState().subscribe(o->System.out.println("fs"));
+        //m.getPlayerPanelState().subscribe(o->System.out.println("pps"));
+
+        //System.out.println("GO");
         v.getMenuActions().filter(s -> s== MenuAction.EXIT).take(1).blockingSubscribe();
-        System.out.println("END");
+        //System.out.println("END");
     }
+
 
 }

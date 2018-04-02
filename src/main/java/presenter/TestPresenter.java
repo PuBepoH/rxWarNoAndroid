@@ -24,6 +24,7 @@ public class TestPresenter implements PresenterFacade {
     private PublishSubject<MenuAction> menuActions = PublishSubject.create();
     private PublishSubject<GameAction> gameActions = PublishSubject.create();
     private PublishSubject<NewAction> newActions = PublishSubject.create();
+    private PublishSubject<WinEvent> winEvent = PublishSubject.create();
     //Disposable Containers
     private CompositeDisposable internalDisposables = new CompositeDisposable();
     private CompositeDisposable externalDisposables = new CompositeDisposable();
@@ -50,6 +51,7 @@ public class TestPresenter implements PresenterFacade {
             modelFacade.getFieldState().subscribe(fieldState::onNext)
             , modelFacade.getPlayerPanelState().subscribe(playerPanelState::onNext)
             , modelFacade.getTimerState().subscribe(timerState::onNext)
+            , modelFacade.getWinEvent().subscribe(winEvent::onNext)
             , viewFacade.getMenuActions().subscribe(menuActions::onNext)
             , viewFacade.getGameActions().subscribe(gameActions::onNext)
             , viewFacade.getNewActions().subscribe(newActions::onNext)
@@ -125,7 +127,20 @@ public class TestPresenter implements PresenterFacade {
             fragmentControlState
                 .subscribe(o->modelCommand.onNext(new ModelCommandPauseResume(o==FragmentName.GAME)))
         );
-
+        //MENU STATE
+        internalDisposables.add(
+            fragmentControlState
+                .filter(FragmentName.GAME::equals)
+                .map(o->(Object)o)
+                .mergeWith(winEvent)
+                .subscribe(o->{
+                    if (o instanceof WinEvent){
+                        menuState.onNext(MenuState.UNRESUMABLE);
+                    } else {
+                        menuState.onNext(MenuState.RESUMABLE);
+                    }
+                })
+        );
     }
 
 

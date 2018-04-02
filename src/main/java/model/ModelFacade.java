@@ -10,4 +10,5 @@ public interface ModelFacade {
     public BehaviorSubject<Integer> getTimerState();
     public BehaviorSubject<FieldState> getFieldState();
     public BehaviorSubject<PlayerPanelState> getPlayerPanelState();
+    public PublishSubject<WinEvent> getWinEvent();
 }

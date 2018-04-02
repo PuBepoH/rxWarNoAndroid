@@ -19,7 +19,7 @@ public class NewAction {
         return colors;
     }
 
-    public NewActionType isNewGame() {
+    public NewActionType getType() {
         return type;
     }
 }

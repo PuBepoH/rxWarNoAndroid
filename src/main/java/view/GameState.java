@@ -1,16 +1,16 @@
 package view;
 
 import presenter.FieldState;
-import presenter.TurnsState;
+import presenter.PlayerPanelState;
 
 public class GameState {
     private FieldState fieldState;
-    private TurnsState turnsState;
+    private PlayerPanelState playerPanelState;
     private int timerState;
 
-    public GameState(FieldState fieldState, TurnsState turnsState, int timerState) {
+    public GameState(FieldState fieldState, PlayerPanelState playerPanelState, int timerState) {
         this.fieldState = fieldState;
-        this.turnsState = turnsState;
+        this.playerPanelState = playerPanelState;
         this.timerState = timerState;
     }
 
@@ -18,8 +18,8 @@ public class GameState {
         return fieldState;
     }
 
-    public TurnsState getTurnsState() {
-        return turnsState;
+    public PlayerPanelState getPlayerPanelState() {
+        return playerPanelState;
     }
 
     public int getTimerState() {

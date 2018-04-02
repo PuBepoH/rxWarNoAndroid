@@ -89,7 +89,6 @@ public class TestView implements ViewFacade{
         internalDisposables.add(inputFlow.connect());
     }
 
-    @Override
     public void initialize(PresenterFacade presenterFacade) {
         externalDisposables.dispose();
         externalDisposables=new CompositeDisposable();
@@ -114,7 +113,7 @@ public class TestView implements ViewFacade{
         externalDisposables.add(
                 Observable.combineLatest(presenterFacade.getFragmentControlState()
                         , presenterFacade.getFieldState()
-                        ,presenterFacade.getTurnsState()
+                        ,presenterFacade.getPlayerPanelState()
                         ,presenterFacade.getTimerState()
                         , (fc, fs, tus, tis)-> new Pair<>(fc,new GameState(fs,tus,tis)))
                 .filter(o->o.getKey()==FragmentName.GAME)

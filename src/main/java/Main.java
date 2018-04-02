@@ -9,15 +9,16 @@ import view.ViewFacade;
 
 public class Main {
     public static void main(String[] args) {
-        ViewFacade v = new TestView();
-        PresenterFacade p = new TestPresenter();
-        ModelFacade m = new TestModel();
+        TestView v = new TestView();
+        TestPresenter p = new TestPresenter();
+        TestModel m = new TestModel();
 
         v.initialize(p);
+        p.initialize(v,m,null);
 
 
         //v.getMenuActions().subscribe(o->System.out.println("m: "+o));
-        //v.getNewActions().subscribe(o->System.out.println("n: "+o.isNewGame()+" "+o.getPlayers()+" "+o.getColors()));
+        //v.getNewActions().subscribe(o->System.out.println("n: "+o.getType()+" "+o.getPlayers()+" "+o.getColors()));
         //v.getGameActions().subscribe(o->System.out.println("g: "+o.getType()+" "+o.getPlayer()+" "+o.getColor()));
 
         System.out.println("GO");

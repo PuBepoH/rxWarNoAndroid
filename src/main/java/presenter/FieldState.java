@@ -1,26 +1,30 @@
 package presenter;
 
-import io.reactivex.subjects.BehaviorSubject;
-
 public class FieldState {
-    private   byte x,y;
+    private   int xSize, ySize;
     private int[][] field;
+    private boolean[][] visible;
 
-    public FieldState(byte x, byte y, int[][] field) {
-        this.x = x;
-        this.y = y;
-        this.field = field;
+    public FieldState(int xSize, int maxY, int[][] field, boolean[][] visible) {
+        this.xSize = xSize;
+        this.ySize = maxY;
+        this.field =field.clone();
+        this.visible=visible.clone();
     }
 
-    public byte getX() {
-        return x;
+    public int getXSize() {
+        return xSize;
     }
 
-    public byte getY() {
-        return y;
+    public int getYSize() {
+        return ySize;
     }
 
-    public int[][] getField() {
-        return field;
+    public int getColor(int x, int y) {
+        return field[x][y];
+    }
+
+    public boolean isVisible(int x, int y) {
+        return visible[x][y];
     }
 }

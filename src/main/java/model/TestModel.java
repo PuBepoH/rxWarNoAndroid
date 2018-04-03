@@ -3,7 +3,6 @@ package model;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.PublishSubject;
 import javafx.util.Pair;
@@ -31,20 +30,21 @@ public class TestModel implements ModelFacade{
     private BehaviorSubject<PlayerPanelState> playerPanelState = BehaviorSubject.create();
     private PublishSubject<WinEvent> winEvent = PublishSubject.create();
 
+    private BehaviorSubject<Boolean> gameActive = BehaviorSubject.create();
     private BehaviorSubject<Integer> turnOfPlayer = BehaviorSubject.create();
     private BehaviorSubject<boolean[][]> blockedColors = BehaviorSubject.create();
     private PublishSubject<Integer> timerUpdater = PublishSubject.create();
     private Observable clock;
 
     //NON-streams
-    private byte X=10;
-    private byte Y=10;
-    private int numberOfPlayers;
-    private int numberOfColors;
+    private ModelConfiguration modelConfiguration;
     //SUBSCRIPTIONS
     private CompositeDisposable commandSubscription = new CompositeDisposable();
     private CompositeDisposable internalSubscriptions = new CompositeDisposable();
     private Disposable clockSubscription;
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public TestModel(){
         createLogic();
@@ -91,10 +91,9 @@ public class TestModel implements ModelFacade{
         //NEW
         internalSubscriptions.add(
             modelCommandNew.subscribe(o->{
-                this.numberOfPlayers=o.getNumberOfPlayers();
-                this.numberOfColors=o.getNumberOfColors();
+                this.modelConfiguration=o.getModelConfiguration();
                 fieldState.onNext(createNewField(o));
-                turnOfPlayer.onNext(1);
+                turnOfPlayer.onNext(0);
             })
         );
         //SET
@@ -106,7 +105,7 @@ public class TestModel implements ModelFacade{
         internalSubscriptions.add(
             Observable
                 .combineLatest(turnOfPlayer,fieldState, Pair::new)
-                .map(o-> new PlayerPanelState(numberOfColors,numberOfPlayers, blockedColors.getValue() ,1 ))
+                .map(o-> new PlayerPanelState(modelConfiguration.getNumberOfColors(),modelConfiguration.isTwoPlayers(), blockedColors.getValue() ,1 ))
                 .subscribe(playerPanelState::onNext)
         );
         //blockedColors
@@ -118,10 +117,16 @@ public class TestModel implements ModelFacade{
     }
 
     private boolean[][] defineBlockedColors(FieldState fs){
-        boolean[][] bc = new boolean[numberOfPlayers][numberOfColors];
-        if (numberOfPlayers==1) {
-            for (int i=0;i<numberOfColors;i++){
-                bc[0][i]=(i+1!=fs.getField()[0][0]);
+        ModelConfiguration mc = modelConfiguration;
+
+        boolean[][] bc = new boolean[mc.isTwoPlayers()?2:1][modelConfiguration.getNumberOfColors()];
+
+        for (int i=0;i<mc.getNumberOfColors();i++){
+            bc[0][i]=(i+1!=fs.getColor(0,0));
+        }
+        if (mc.isTwoPlayers()) {
+            for (int i=0;i<mc.getNumberOfColors();i++){
+                bc[1][i]=(i+1!=fs.getColor(fs.getXSize(),fs.getYSize()));
             }
         }
         return bc;
@@ -130,27 +135,71 @@ public class TestModel implements ModelFacade{
     private FieldState createNewField(ModelCommandNew command){
         //TODO: createNewField
         Random random = new Random();
+        int X = command.getXSize();
+        int Y = command.getYSize();
         int[][] field = new int[X][Y];
+        boolean[][] visible = new boolean[X][Y];
         for (int i = 0;i<X;i++){
             for (int j = 0;j<Y;j++){
-                field[i][j]= -(random.nextInt(command.getNumberOfColors())+1);
+                field[i][j]= random.nextInt(command.getModelConfiguration().getNumberOfColors())+1;
             }
         }
-        return new FieldState(X,Y,field);
-    }
-/*
-    private void a(){
-        PublishSubject<Pair<Integer,Integer>> ps1= PublishSubject.create();
+        FieldState fs = new FieldState(X,Y,field,visible);
 
-        Observable<Pair<Integer,Integer>> obs = Observable.create(s->{
-            ps1.onNext();
+
+        allSameColorAs(0,0, fs)
+            .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
+            .subscribe(o->{
+                System.out.println("SET VISIBLE: "+ o);
+                visible[o.getKey()][o.getValue()]=true;
+            });
+
+        //TODO: BUG here!!!
+        allSameColorAs(X-1,Y-1, fs)
+            .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
+            .subscribe(o->{
+                visible[o.getKey()][o.getValue()]=true;
+            });
+
+
+        return new FieldState(X,Y,field,visible);
+    }
+
+    private Observable<Pair<Integer,Integer>> allNearCells(int x, int y, FieldState fs){
+        return Observable.create(s->{
+            if ((x>=0)&(y>=0)&(x<fs.getXSize())&(y<fs.getYSize())){
+                s.onNext(new Pair<>(x,y));
+                if(x-1>=0) s.onNext(new Pair<>(x-1,y));
+                if(x+1<fs.getXSize()) s.onNext(new Pair<>(x+1,y));
+                if(y-1>=0) s.onNext(new Pair<>(x,y-1));
+                if(y+1<fs.getYSize()) s.onNext(new Pair<>(x,y+1));
+            }
+            s.onComplete();
         });
-
-        ps1.distinct().subscribe(o->{
-            ps1.onNext();
-        })
     }
-*/
+
+    private Observable<Pair<Integer,Integer>> allSameColorAs(int x, int y, FieldState fs){
+        return Observable.create(s->{
+
+            int startColor=fs.getColor(x,y);
+            PublishSubject<Pair<Integer,Integer>> ps = PublishSubject.create();
+            ps.subscribe(s::onNext);
+            ps.distinct().subscribe(o->{
+                if (fs.getColor(o.getKey(),o.getValue())==startColor){
+                    allNearCells(o.getKey(),o.getValue(),fs)
+                        .doOnNext(don->System.out.println("OnNext: "+don))
+                        .filter(oo->fs.getColor(oo.getKey(),oo.getValue())==startColor)
+                        .doOnNext(don->System.out.println("Unfiltered:"+don))
+                        .subscribe(ps::onNext);
+                }
+            });
+
+            ps.onNext(new Pair<>(x,y));
+            ps.onComplete();
+
+            s.onComplete();
+        });
+    }
 
     @Override
     public BehaviorSubject<Integer> getTimerState() {

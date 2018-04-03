@@ -101,7 +101,7 @@ public class TestPresenter implements PresenterFacade {
                 .map(Pair::getKey)
                 .subscribe(o->{
                     fragmentControlState.onNext(FragmentName.GAME);
-                    modelCommand.onNext(new ModelCommandNew(o.getPlayers(), o.getColors()));
+                    modelCommand.onNext(new ModelCommandNew(new ModelConfiguration(o.getPlayers()!=1, o.getColors()),10,10));
                 })
         );
         //GAME->BACK

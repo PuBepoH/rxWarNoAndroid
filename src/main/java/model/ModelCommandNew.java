@@ -1,19 +1,23 @@
 package model;
 
 public class ModelCommandNew extends ModelCommand {
-    private int numberOfPlayers;
-    private int numberOfColors;
+    private ModelConfiguration modelConfiguration;
+    private int xSize,ySize;
 
-    public ModelCommandNew(int numberOfPlayers, int numberOfColors) {
-        this.numberOfPlayers = numberOfPlayers;
-        this.numberOfColors = numberOfColors;
+    public ModelCommandNew(ModelConfiguration modelConfiguration , int x, int y) {
+        this.modelConfiguration = modelConfiguration;
+        this.xSize=x;
+        this.ySize=y;
     }
 
-    public int getNumberOfPlayers() {
-        return numberOfPlayers;
+    public ModelConfiguration getModelConfiguration() {
+        return modelConfiguration;
     }
 
-    public int getNumberOfColors() {
-        return numberOfColors;
+    public int getXSize() {
+        return xSize; }
+
+    public int getYSize() {
+        return ySize;
     }
 }

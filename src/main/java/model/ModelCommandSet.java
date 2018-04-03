@@ -1,32 +1,22 @@
 package model;
 
-public class ModelCommandSet extends ModelCommand{
-    public int[] fieldState;
-    public int fieldX;
-    public int fieldY;
-    public int timerState;
-    public int turnOfPlayer;
-    public int numberOfColors;
+import presenter.FieldState;
 
-    public ModelCommandSet(int[] fieldState, int fieldX, int fieldY, int timerState, int turnOfPlayer, int numberOfColors) {
+public class ModelCommandSet extends ModelCommand{
+    private FieldState fieldState;
+    private int timerState;
+    private int turnOfPlayer;
+    private ModelConfiguration modelConfiguration;
+
+    public ModelCommandSet(ModelConfiguration modelConfiguration, FieldState fieldState, int timerState, int turnOfPlayer) {
         this.fieldState = fieldState;
-        this.fieldX = fieldX;
-        this.fieldY = fieldY;
         this.timerState = timerState;
         this.turnOfPlayer = turnOfPlayer;
-        this.numberOfColors = numberOfColors;
+        this.modelConfiguration = modelConfiguration;
     }
 
-    public int[] getFieldState() {
+    public FieldState getFieldState() {
         return fieldState;
-    }
-
-    public int getFieldX() {
-        return fieldX;
-    }
-
-    public int getFieldY() {
-        return fieldY;
     }
 
     public int getTimerState() {
@@ -37,7 +27,7 @@ public class ModelCommandSet extends ModelCommand{
         return turnOfPlayer;
     }
 
-    public int getNumberOfColors() {
-        return numberOfColors;
+    public ModelConfiguration getModelConfiguration() {
+        return modelConfiguration;
     }
 }

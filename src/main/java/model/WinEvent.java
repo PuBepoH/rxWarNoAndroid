@@ -1,19 +1,19 @@
 package model;
 
 public class WinEvent {
-    private int numberOfPlayers;
+    private boolean twoPlayers;
     private int[] score;
 
-    public WinEvent(int numberOfPlayers, int[] score) {
-        this.numberOfPlayers = numberOfPlayers;
+    public WinEvent(boolean twoPlayers, int[] score) {
+        this.twoPlayers = twoPlayers;
         this.score = score;
     }
 
-    public int getNumberOfPlayers() {
-        return numberOfPlayers;
+    public boolean isTwoPlayers() {
+        return twoPlayers;
     }
 
-    public int[] getScore() {
-        return score;
+    public int getScore(int i) {
+        return score[i];
     }
 }

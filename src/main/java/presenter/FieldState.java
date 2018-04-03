@@ -8,8 +8,14 @@ public class FieldState {
     public FieldState(int xSize, int maxY, int[][] field, boolean[][] visible) {
         this.xSize = xSize;
         this.ySize = maxY;
-        this.field =field.clone();
-        this.visible=visible.clone();
+        this.field = new int[xSize][ySize];
+        this.visible = new boolean[xSize][ySize];
+        for (int i =0; i<xSize; i++){
+            for (int j =0; j<xSize; j++){
+                this.field[i][j]=field[i][j];
+                this.visible[i][j]=visible[i][j];
+            }
+        }
     }
 
     public int getXSize() {

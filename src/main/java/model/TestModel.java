@@ -98,14 +98,18 @@ public class TestModel implements ModelFacade{
         );
         //SET
         //TURN
+        internalSubscriptions.add(
+            modelCommandTurn
+                .subscribe(o->fieldState.onNext(makeTurn(fieldState.getValue(),o)))
+        );
         //PAUSE
 
         //update states
         //player panels
         internalSubscriptions.add(
             Observable
-                .combineLatest(turnOfPlayer,fieldState, Pair::new)
-                .map(o-> new PlayerPanelState(modelConfiguration.getNumberOfColors(),modelConfiguration.isTwoPlayers(), blockedColors.getValue() ,1 ))
+                .combineLatest(turnOfPlayer,blockedColors, Pair::new)
+                .map(o-> new PlayerPanelState(modelConfiguration.getNumberOfColors(),modelConfiguration.isTwoPlayers(), o.getValue() ,o.getKey()))
                 .subscribe(playerPanelState::onNext)
         );
         //blockedColors
@@ -116,24 +120,52 @@ public class TestModel implements ModelFacade{
 
     }
 
+    private FieldState makeTurn(FieldState fs, ModelCommandTurn mct) {
+        int X = fs.getXSize();
+        int Y = fs.getYSize();
+        int[][] field = new int[X][Y];
+        boolean[][] visible = new boolean[X][Y];
+
+        for (int i=0;i<X;i++) {
+            for (int j=0;j<Y;j++) {
+                field[i][j]=fs.getColor(i,j);
+                visible[i][j]=fs.isVisible(i,j);
+            }
+        }
+
+        int aX,aY;
+
+        if (mct.getPlayer()==0) {
+            aX=0;
+            aY=0;
+        } else {
+            aX=X-1;
+            aY=Y-1;
+        }
+
+        allSameColorAs(aX,aY,new FieldState(X,Y,field,visible))
+            .subscribe(o->field[o.getKey()][o.getValue()]=mct.getColor());
+        System.out.println("-----------------");
+        return updateVisible(new FieldState(X,Y,field,visible), modelConfiguration);
+    }
+
     private boolean[][] defineBlockedColors(FieldState fs){
         ModelConfiguration mc = modelConfiguration;
 
-        boolean[][] bc = new boolean[mc.isTwoPlayers()?2:1][modelConfiguration.getNumberOfColors()];
+        boolean[][] bc = new boolean[mc.isTwoPlayers()?2:1][mc.getNumberOfColors()];
 
         for (int i=0;i<mc.getNumberOfColors();i++){
             bc[0][i]=(i+1!=fs.getColor(0,0));
         }
         if (mc.isTwoPlayers()) {
             for (int i=0;i<mc.getNumberOfColors();i++){
-                bc[1][i]=(i+1!=fs.getColor(fs.getXSize(),fs.getYSize()));
+                bc[1][i]=(i+1!=fs.getColor(fs.getXSize()-1,fs.getYSize()-1));
             }
         }
         return bc;
     }
 
     private FieldState createNewField(ModelCommandNew command){
-        //TODO: createNewField
         Random random = new Random();
         int X = command.getXSize();
         int Y = command.getYSize();
@@ -144,23 +176,43 @@ public class TestModel implements ModelFacade{
                 field[i][j]= random.nextInt(command.getModelConfiguration().getNumberOfColors())+1;
             }
         }
-        FieldState fs = new FieldState(X,Y,field,visible);
 
+        return updateVisible(new FieldState(X,Y,field,visible),command.getModelConfiguration());
+    }
+
+    private FieldState updateVisible(FieldState fsIn, ModelConfiguration mc){
+        int X = fsIn.getXSize();
+        int Y = fsIn.getYSize();
+        int[][] field = new int[X][Y];
+        boolean[][] visible = new boolean[X][Y];
+
+        for (int i=0;i<X;i++) {
+            for (int j=0;j<Y;j++) {
+                field[i][j]=fsIn.getColor(i,j);
+            }
+        }
+
+        FieldState fs = new FieldState(X,Y,field,visible);
 
         allSameColorAs(0,0, fs)
             .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
-            .subscribe(o->{
-                System.out.println("SET VISIBLE: "+ o);
-                visible[o.getKey()][o.getValue()]=true;
-            });
-
-        //TODO: BUG here!!!
-        allSameColorAs(X-1,Y-1, fs)
-            .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
+            .distinct()
+            .flatMap(o-> allSameColorAs(o.getKey(),o.getValue(),fs))
+            .distinct()
             .subscribe(o->{
                 visible[o.getKey()][o.getValue()]=true;
             });
 
+        if(mc.isTwoPlayers()) {
+            allSameColorAs(X - 1, Y - 1, fs)
+                .flatMap(o -> allNearCells(o.getKey(), o.getValue(), fs))
+                .distinct()
+                .flatMap(o-> allSameColorAs(o.getKey(),o.getValue(),fs))
+                .distinct()
+                .subscribe(o -> {
+                    visible[o.getKey()][o.getValue()] = true;
+                });
+        };
 
         return new FieldState(X,Y,field,visible);
     }
@@ -183,13 +235,12 @@ public class TestModel implements ModelFacade{
 
             int startColor=fs.getColor(x,y);
             PublishSubject<Pair<Integer,Integer>> ps = PublishSubject.create();
-            ps.subscribe(s::onNext);
-            ps.distinct().subscribe(o->{
+            Observable<Pair<Integer,Integer>> obs = ps.distinct();
+            obs.subscribe(s::onNext);
+            obs.subscribe(o->{
                 if (fs.getColor(o.getKey(),o.getValue())==startColor){
                     allNearCells(o.getKey(),o.getValue(),fs)
-                        .doOnNext(don->System.out.println("OnNext: "+don))
                         .filter(oo->fs.getColor(oo.getKey(),oo.getValue())==startColor)
-                        .doOnNext(don->System.out.println("Unfiltered:"+don))
                         .subscribe(ps::onNext);
                 }
             });

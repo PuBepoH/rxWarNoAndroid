@@ -3,10 +3,12 @@ package model;
 public class WinEvent {
     private boolean twoPlayers;
     private int[] score;
+    private int maxScore;
 
-    public WinEvent(boolean twoPlayers, int[] score) {
+    public WinEvent(boolean twoPlayers, int[] score, int maxScore) {
         this.twoPlayers = twoPlayers;
-        this.score = score;
+        this.score = score.clone();
+        this.maxScore=maxScore;
     }
 
     public boolean isTwoPlayers() {
@@ -15,5 +17,9 @@ public class WinEvent {
 
     public int getScore(int i) {
         return score[i];
+    }
+
+    public int getMaxScore() {
+        return maxScore;
     }
 }

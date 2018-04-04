@@ -9,8 +9,11 @@ public class PlayerPanelState {
     public PlayerPanelState(int numberOfColors, boolean twoPlayers, boolean[][] blocked, int turnOfPlayer) {
         this.numberOfColors = numberOfColors;
         this.twoPlayers = twoPlayers;
-        this.blocked = blocked.clone();
         this.turnOfPlayer = turnOfPlayer;
+        this.blocked=blocked.clone();
+        for (int i=0;i<blocked.length;i++){
+            this.blocked[i]=blocked[i].clone();
+        }
     }
 
     public int getNumberOfColors() {

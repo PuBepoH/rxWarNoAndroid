@@ -76,6 +76,9 @@ public class TestModel implements ModelFacade{
                 .subscribe(o->modelCommandPauseResume.onNext((ModelCommandPauseResume)o))
             , inCommand
                 .filter(o->o instanceof ModelCommandTurn)
+                .map(o -> (ModelCommandTurn) o)
+                .filter(o->o.getPlayer()==turnOfPlayer.getValue())
+                .filter(o->!blockedColors.getValue()[o.getPlayer()][o.getColor()-1])
                 .subscribe(o->modelCommandTurn.onNext((ModelCommandTurn) o))
         );
 
@@ -94,17 +97,24 @@ public class TestModel implements ModelFacade{
                 this.modelConfiguration=o.getModelConfiguration();
                 fieldState.onNext(createNewField(o));
                 turnOfPlayer.onNext(0);
+                gameActive.onNext(true);
             })
         );
-        //SET
+        //TODO: SET
         //TURN
         internalSubscriptions.add(
             modelCommandTurn
-                .subscribe(o->fieldState.onNext(makeTurn(fieldState.getValue(),o)))
+                .subscribe(o->{
+                    fieldState.onNext(makeTurn(fieldState.getValue(),o));
+                    if (modelConfiguration.isTwoPlayers()){
+                        turnOfPlayer.onNext(1-turnOfPlayer.getValue());
+                    }
+                })
         );
-        //PAUSE
+        //TODO: PAUSE
 
-        //update states
+
+        //UPDATE STATES:
         //player panels
         internalSubscriptions.add(
             Observable
@@ -117,8 +127,38 @@ public class TestModel implements ModelFacade{
             fieldState
                 .subscribe(o->blockedColors.onNext(defineBlockedColors(o)))
         );
+        //TODO: checkWin
+        internalSubscriptions.add(
+            fieldState
+                .zipWith(blockedColors, Pair::new)
+                .map(p->{
+                    FieldState o = p.getKey();
+                    ModelConfiguration mc = modelConfiguration;
+                    int[] score = new int[mc.isTwoPlayers()?2:1];
+                    allSameColorAs(0,0,o)
+                        .count()
+                        .subscribe(c->score[0]=c.intValue());
+                    if (mc.isTwoPlayers()){
+                        allSameColorAs(o.getXSize()-1,o.getYSize()-1,o)
+                            .count()
+                            .subscribe(c->score[1]=c.intValue());
+                    }
+                    return new Pair<>(new WinEvent(modelConfiguration.isTwoPlayers(),score,o.getXSize()*o.getYSize()),p.getValue());
+                })
+                .filter(o->{
+                    ModelConfiguration mc = modelConfiguration;
+                    if (mc.isTwoPlayers()) {
+                        if(o.getScore(0)>)
+                    }
+                })
+                .subscribe()
+        );
+        //TODO: check unable make turn
+        //TODO: active on/off
 
     }
+
+
 
     private FieldState makeTurn(FieldState fs, ModelCommandTurn mct) {
         int X = fs.getXSize();
@@ -154,13 +194,28 @@ public class TestModel implements ModelFacade{
 
         boolean[][] bc = new boolean[mc.isTwoPlayers()?2:1][mc.getNumberOfColors()];
 
-        for (int i=0;i<mc.getNumberOfColors();i++){
-            bc[0][i]=(i+1!=fs.getColor(0,0));
-        }
-        if (mc.isTwoPlayers()) {
-            for (int i=0;i<mc.getNumberOfColors();i++){
-                bc[1][i]=(i+1!=fs.getColor(fs.getXSize()-1,fs.getYSize()-1));
+        for (int i = 0; i<(mc.isTwoPlayers()?2:1);i++){
+            for (int j = 0; j<(mc.getNumberOfColors());j++){
+                bc[i][j]=true;
             }
+        }
+
+        allSameColorAs(0,0,fs)
+            .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
+            .map(o->fs.getColor(o.getKey(),o.getValue()))
+            .distinct()
+            .subscribe(o->bc[0][o-1]=false);
+        bc[0][fs.getColor(0,0)-1]=true;
+
+        if (mc.isTwoPlayers()) {
+            allSameColorAs(fs.getXSize()-1,fs.getYSize()-1,fs)
+                .flatMap(o->allNearCells(o.getKey(),o.getValue(),fs))
+                .map(o->fs.getColor(o.getKey(),o.getValue()))
+                .distinct()
+                .subscribe(o->bc[1][o-1]=false);
+            bc[0][fs.getColor(fs.getXSize()-1,fs.getYSize()-1)-1]=true;
+            bc[1][fs.getColor(fs.getXSize()-1,fs.getYSize()-1)-1]=true;
+            bc[1][fs.getColor(0,0)-1]=true;
         }
         return bc;
     }

@@ -162,7 +162,7 @@ public class TestView implements ViewFacade{
         System.out.println("[PLAYER PANELS]");
         for (int x=0;x<(gs.getPlayerPanelState().isTwoPlayers()?2:1);x++){
             for (int y=0;y<gs.getPlayerPanelState().getNumberOfColors();y++){
-                System.out.print((gs.getPlayerPanelState().isBlocked(x,y)?"+":"-")+" ");
+                System.out.print((gs.getPlayerPanelState().isBlocked(x,y)?"-":"+")+" ");
             }
             if (gs.getPlayerPanelState().getTurnOfPlayer()==x) System.out.print("<--");
             System.out.println();

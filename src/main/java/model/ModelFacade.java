@@ -1,14 +1,15 @@
 package model;
 
+import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.PublishSubject;
 import presenter.FieldState;
 import presenter.PlayerPanelState;
 
 public interface ModelFacade {
-    public void setCommand(PublishSubject<ModelCommand> command);
-    public BehaviorSubject<Integer> getTimerState();
-    public BehaviorSubject<FieldState> getFieldState();
-    public BehaviorSubject<PlayerPanelState> getPlayerPanelState();
-    public PublishSubject<WinEvent> getWinEvent();
+    void setCommand(PublishSubject<ModelCommand> command);
+    Observable<Integer> getTimerState();
+    Observable<FieldState> getFieldState();
+    Observable<PlayerPanelState> getPlayerPanelState();
+    Observable<WinEvent> getWinEvent();
 }

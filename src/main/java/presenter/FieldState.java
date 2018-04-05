@@ -1,5 +1,7 @@
 package presenter;
 
+import model.ModelState;
+
 public class FieldState {
     private   int xSize, ySize;
     private int[][] field;
@@ -16,6 +18,13 @@ public class FieldState {
                 this.visible[i][j]=visible[i][j];
             }
         }
+    }
+
+    public FieldState(ModelState ms){
+        this.xSize=ms.getXSize();
+        this.ySize=ms.getYSize();
+        this.field= ms.getField();
+        this.visible=ms.getVisible();
     }
 
     public int getXSize() {

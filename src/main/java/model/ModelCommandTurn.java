@@ -1,8 +1,8 @@
 package model;
 
 public class ModelCommandTurn extends ModelCommand {
-    public int player;
-    public int color;
+    private int player;
+    private int color;
 
     public ModelCommandTurn(int player, int color) {
         this.player = player;

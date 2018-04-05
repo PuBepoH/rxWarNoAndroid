@@ -1,5 +1,6 @@
 import model.ModelFacade;
 import model.TestModel;
+import model.TestModelRemake;
 import presenter.PresenterFacade;
 import presenter.TestPresenter;
 import view.MenuAction;
@@ -11,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
         TestView v = new TestView();
         TestPresenter p = new TestPresenter();
-        TestModel m = new TestModel();
+        TestModelRemake m = new TestModelRemake();
 
         v.initialize(p);
         p.initialize(v,m,null);
@@ -22,6 +23,8 @@ public class Main {
         //v.getGameActions().subscribe(o->System.out.println("g: "+o.getType()+" "+o.getPlayer()+" "+o.getColor()));
 
         //m.getFieldState().subscribe(o->System.out.println("fs"));
+        //m.getPlayerPanelState().subscribe(o->System.out.println("pps"));
+        //m.getTimerState().subscribe(o->System.out.println("ts"));
         //m.getPlayerPanelState().subscribe(o->System.out.println("pps"));
 
         //System.out.println("GO");

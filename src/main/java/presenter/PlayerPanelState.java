@@ -1,5 +1,7 @@
 package presenter;
 
+import model.ModelState;
+
 public class PlayerPanelState {
     private int numberOfColors;
     private boolean twoPlayers;
@@ -16,6 +18,13 @@ public class PlayerPanelState {
         }
     }
 
+    public PlayerPanelState(ModelState ms){
+        this.numberOfColors = ms.getNumberOfColors();
+        this.twoPlayers=ms.isTwoPlayers();
+        this.turnOfPlayer=ms.getTurnOfPlayer();
+        this.blocked=ms.getBlockedColors();
+    }
+
     public int getNumberOfColors() {
         return numberOfColors;
     }
@@ -24,8 +33,8 @@ public class PlayerPanelState {
         return twoPlayers;
     }
 
-    public boolean isBlocked(int x,int y) {
-        return blocked[x][y];
+    public boolean isBlocked(int player,int color) {
+        return blocked[color][player];
     }
 
     public int getTurnOfPlayer() {

@@ -11,7 +11,9 @@ import presenter.PlayerPanelState;
 
 import java.util.Random;
 
-public class TestModel implements ModelFacade{
+public class TestModel {/* implements ModelFacade{
+
+
     //IN
     private PublishSubject<ModelCommand> inCommand = PublishSubject.create();
     //OUT
@@ -148,8 +150,9 @@ public class TestModel implements ModelFacade{
                 .filter(o->{
                     ModelConfiguration mc = modelConfiguration;
                     if (mc.isTwoPlayers()) {
-                        if(o.getScore(0)>)
+                        //if(o.getScore(0)>)
                     }
+                return true; //TODO: REMOVE
                 })
                 .subscribe()
         );
@@ -336,4 +339,5 @@ public class TestModel implements ModelFacade{
         if (clockSubscription!=null) clockSubscription.dispose();
         super.finalize();
     }
+    */
 }

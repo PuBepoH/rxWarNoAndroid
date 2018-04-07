@@ -3,7 +3,6 @@ package model;
 public class WinEvent {
     private boolean twoPlayers;
     private int[] score;
-    private int maxScore;
 
     public WinEvent(boolean twoPlayers, int[] score, int maxScore) {
         this.twoPlayers = twoPlayers;

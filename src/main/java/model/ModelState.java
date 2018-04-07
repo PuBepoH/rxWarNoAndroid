@@ -188,7 +188,23 @@ public class ModelState {
 
     public ModelState makeTurn(int color){
         //TODO make turn
-        return null;
+        ModelState ms = new ModelState(this);
+        int x=0;
+        int y=0;
+
+        if (ms.isTwoPlayers()) {
+            x=ms.getXSize()-1;
+            y=ms.getYSize()-1;
+        }
+
+        ms.allSameColorAs(new Pair<>(x,y), new ModelState(ms))
+            .doOnNext(System.out::println)
+            .subscribe(o->ms.setColor(o,color));
+        if(ms.twoPlayers) {
+            ms.setTurnOfPlayer(1-ms.getTurnOfPlayer());
+        }
+
+        return ms.updateVisible();
     }
 
     public ModelState newGame(){
@@ -309,5 +325,17 @@ public class ModelState {
             ps.onComplete();
             s.onComplete();
         });
+    }
+
+    private int[] getScore(){
+        int[] ans = new int[2];
+        allSameColorAs(new Pair<>(0,0),this)
+            .count()
+            .subscribe(o->ans[0]=o.intValue());
+        Pair<Integer,Integer> p =new Pair<>(getXSize()-1,getYSize()-1);
+        allSameColorAs(p,this)
+            .count()
+            .subscribe(o->ans[1]=o.intValue());
+        return ans;
     }
 }

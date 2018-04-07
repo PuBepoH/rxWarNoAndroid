@@ -84,12 +84,9 @@ public class TestModelRemake implements ModelFacade{
         //TODO TURN
         internalSubscriptions.add(
             modelCommandTurn
-                .doOnNext(o->{   //TODO REMOVE
-                    System.out.println(""+o.getKey().getPlayer()+" "+o.getValue().getTurnOfPlayer());
-                })
                 .filter(o-> o.getKey().getPlayer()==o.getValue().getTurnOfPlayer())
                 .filter(o->o.getKey().getColor()<o.getValue().getNumberOfColors())
-                .filter(o->o.getValue().getBlockedColors()[o.getKey().getColor()][o.getKey().getPlayer()])
+                .filter(o->!o.getValue().getBlockedColors()[o.getKey().getColor()][o.getKey().getPlayer()])
                 .map(o->o.getValue().makeTurn(o.getKey().getColor()))
                 .map(ModelState::makeImmutable)
                 .subscribe(modelState::onNext)
@@ -120,6 +117,22 @@ public class TestModelRemake implements ModelFacade{
                 .subscribe(timerState::onNext)
         );
         */
+        //OTHER LOGIC
+        //TODO CHECK WIN
+        internalSubscriptions.add(
+            modelState
+                .filter(o->{
+                    boolean ans=false;
+                    for (boolean[] a:o.getBlockedColors()){
+                        for(boolean b:a){
+                            ans=ans|b;
+                        }
+                    }
+                    return !ans;
+                })
+                .map(o->WinEvent.)
+                .subscribe(WinEvent.onNext)
+        );
     }
 
 

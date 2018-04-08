@@ -17,19 +17,10 @@ public class Main {
         v.initialize(p);
         p.initialize(v,m,null);
 
+        //p.getFragmentControlState().subscribe(System.out::println);
 
-        //v.getMenuActions().subscribe(o->System.out.println("m: "+o));
-        //v.getNewActions().subscribe(o->System.out.println("n: "+o.getType()+" "+o.getPlayers()+" "+o.getColors()));
-        //v.getGameActions().subscribe(o->System.out.println("g: "+o.getType()+" "+o.getPlayer()+" "+o.getColor()));
 
-        //m.getFieldState().subscribe(o->System.out.println("fs"));
-        //m.getPlayerPanelState().subscribe(o->System.out.println("pps"));
-        //m.getTimerState().subscribe(o->System.out.println("ts"));
-        //m.getPlayerPanelState().subscribe(o->System.out.println("pps"));
-
-        //System.out.println("GO");
         v.getMenuActions().filter(s -> s== MenuAction.EXIT).take(1).blockingSubscribe();
-        //System.out.println("END");
     }
 
 

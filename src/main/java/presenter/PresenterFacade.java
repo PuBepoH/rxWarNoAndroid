@@ -1,14 +1,14 @@
 package presenter;
 
-import io.reactivex.subjects.BehaviorSubject;
-
-
+import io.reactivex.Observable;
+import model.WinEvent;
 
 
 public interface PresenterFacade {
-    public BehaviorSubject<FragmentName> getFragmentControlState();
-    public BehaviorSubject<MenuState> getMenuState();
-    public BehaviorSubject<FieldState> getFieldState();
-    public BehaviorSubject<Integer> getTimerState();
-    public BehaviorSubject<PlayerPanelState> getPlayerPanelState();
+    public Observable<FragmentName> getFragmentControlState();
+    public Observable<MenuState> getMenuState();
+    public Observable<FieldState> getFieldState();
+    public Observable<Integer> getTimerState();
+    public Observable<PlayerPanelState> getPlayerPanelState();
+    public Observable<WinEvent> getWinState();
 }

@@ -6,6 +6,7 @@ import io.reactivex.observables.ConnectableObservable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import javafx.util.Pair;
+import model.WinEvent;
 import presenter.FragmentName;
 import presenter.MenuState;
 import presenter.PresenterFacade;
@@ -20,6 +21,7 @@ public class TestView implements ViewFacade{
     private PublishSubject<MenuAction> menuActions = PublishSubject.create();
     private PublishSubject<GameAction> gameActions = PublishSubject.create();
     private PublishSubject<NewAction> newActions = PublishSubject.create();
+    private PublishSubject<Integer> winActions = PublishSubject.create();
 
     private ConnectableObservable<String[]> inputFlow;
 
@@ -85,6 +87,14 @@ public class TestView implements ViewFacade{
                     s.onComplete();
                 }))
                 .subscribe(gameActions::onNext));
+        //winActions
+        internalDisposables.add(
+            inputFlow
+                .filter(s->s[0].equals("w"))
+                .filter(s->s[1].equals("ok"))
+                .map(o->0)
+                .subscribe(winActions::onNext)
+        );
 
         internalDisposables.add(inputFlow.connect());
     }
@@ -120,6 +130,20 @@ public class TestView implements ViewFacade{
                 .map(Pair::getValue)
                 .subscribe(this::drawGameFragment)
         );
+        //DRAW WIN
+        externalDisposables.add(
+            Observable.
+                combineLatest(presenterFacade.getFragmentControlState(),presenterFacade.getWinState(), Pair::new)
+                .filter(o->o.getKey()==FragmentName.WIN)
+                .map(Pair::getValue)
+                .subscribe(this::drawWinFragment)
+        );
+    }
+
+    private void drawWinFragment(WinEvent winState){
+        System.out.println("[[[WIN]]]");
+
+        System.out.println("Winner :"+ winState.getWinner()+" ["+winState.getScore(0)+":"+winState.getScore(1)+"]");
     }
 
     private void drawMenuFragment(MenuState ms) {
@@ -180,6 +204,11 @@ public class TestView implements ViewFacade{
     @Override
     public PublishSubject<NewAction> getNewActions() {
         return newActions;
+    }
+
+    @Override
+    public Observable<Integer> getWinActions() {
+        return winActions;
     }
 
     @Override

@@ -6,7 +6,8 @@ import io.reactivex.subjects.PublishSubject;
 import presenter.PresenterFacade;
 
 public interface ViewFacade {
-    public PublishSubject<MenuAction> getMenuActions();
-    public PublishSubject<GameAction> getGameActions();
-    public PublishSubject<NewAction> getNewActions();
+    public Observable<MenuAction> getMenuActions();
+    public Observable<GameAction> getGameActions();
+    public Observable<NewAction> getNewActions();
+    public Observable<Integer> getWinActions();
 }

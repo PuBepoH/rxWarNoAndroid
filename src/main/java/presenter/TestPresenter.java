@@ -20,10 +20,12 @@ public class TestPresenter implements PresenterFacade {
     private BehaviorSubject<Integer> timerState = BehaviorSubject.create();
     private BehaviorSubject<PlayerPanelState> playerPanelState = BehaviorSubject.create();
     private PublishSubject<ModelCommand> modelCommand = PublishSubject.create();
+    private BehaviorSubject<WinEvent> winState = BehaviorSubject.create();
     //IN Streams
     private PublishSubject<MenuAction> menuActions = PublishSubject.create();
     private PublishSubject<GameAction> gameActions = PublishSubject.create();
     private PublishSubject<NewAction> newActions = PublishSubject.create();
+    private PublishSubject<Integer> winActions = PublishSubject.create();
     private PublishSubject<WinEvent> winEvent = PublishSubject.create();
     //Disposable Containers
     private CompositeDisposable internalDisposables = new CompositeDisposable();
@@ -55,6 +57,7 @@ public class TestPresenter implements PresenterFacade {
             , viewFacade.getMenuActions().subscribe(menuActions::onNext)
             , viewFacade.getGameActions().subscribe(gameActions::onNext)
             , viewFacade.getNewActions().subscribe(newActions::onNext)
+            , viewFacade.getWinActions().subscribe(winActions::onNext)
         );
 
     }
@@ -101,7 +104,7 @@ public class TestPresenter implements PresenterFacade {
                 .map(Pair::getKey)
                 .subscribe(o->{
                     fragmentControlState.onNext(FragmentName.GAME);
-                    modelCommand.onNext(new ModelCommandNew(15,15,o.getPlayers()==2,o.getColors(),10));
+                    modelCommand.onNext(new ModelCommandNew(6,6,o.getPlayers()==2,o.getColors(),10));
                 })
         );
         //GAME->BACK
@@ -122,6 +125,14 @@ public class TestPresenter implements PresenterFacade {
                 .map(Pair::getKey)
                 .subscribe(o->modelCommand.onNext(new ModelCommandTurn(o.getPlayer(),o.getColor())))
         );
+        //WIN->OK
+        internalDisposables.add(
+            winActions
+                .withLatestFrom(fragmentControlState, Pair::new)
+                .filter(o->o.getValue()==FragmentName.WIN)
+                .map(Pair::getKey)
+                .subscribe(o->fragmentControlState.onNext(FragmentName.MENU))
+        );
         //GAME PAUSE/RESUME
         internalDisposables.add(
             fragmentControlState
@@ -139,6 +150,14 @@ public class TestPresenter implements PresenterFacade {
                     } else {
                         menuState.onNext(MenuState.RESUMABLE);
                     }
+                })
+        );
+        //WIN EVENT
+        internalDisposables.add(
+            winEvent
+                .subscribe(o->{
+                    winState.onNext(o);
+                    fragmentControlState.onNext(FragmentName.WIN);
                 })
         );
     }
@@ -167,6 +186,11 @@ public class TestPresenter implements PresenterFacade {
     @Override
     public BehaviorSubject<PlayerPanelState> getPlayerPanelState() {
         return playerPanelState;
+    }
+
+    @Override
+    public Observable<WinEvent> getWinState() {
+        return winState;
     }
 
     @Override

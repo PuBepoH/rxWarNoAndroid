@@ -122,16 +122,16 @@ public class TestModelRemake implements ModelFacade{
         internalSubscriptions.add(
             modelState
                 .filter(o->{
-                    boolean ans=false;
+                    boolean ans=true;
                     for (boolean[] a:o.getBlockedColors()){
                         for(boolean b:a){
-                            ans=ans|b;
+                            ans=ans&b;
                         }
                     }
-                    return !ans;
+                    return ans;
                 })
-                .map(o->WinEvent.)
-                .subscribe(WinEvent.onNext)
+                .map(ModelState::getWinEvent)
+                .subscribe(winEvent::onNext)
         );
     }
 

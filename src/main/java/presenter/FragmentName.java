@@ -1,4 +1,4 @@
 package presenter;
 
-public enum FragmentName {MENU, NEW, GAME
+public enum FragmentName {MENU, NEW, GAME, WIN
 }

@@ -192,7 +192,7 @@ public class ModelState {
         int x=0;
         int y=0;
 
-        if (ms.isTwoPlayers()) {
+        if (ms.getTurnOfPlayer()==1) {
             x=ms.getXSize()-1;
             y=ms.getYSize()-1;
         }
@@ -282,9 +282,12 @@ public class ModelState {
                 .map(ms::getColor)
                 .distinct()
                 .subscribe(o->bc[o][1]=false);
-            bc[ms.getColor(ms.getXSize()-1,ms.getYSize()-1)-1][0]=true;
-            bc[ms.getColor(ms.getXSize()-1,ms.getYSize()-1)-1][1]=true;
-            bc[ms.getColor(0,0)-1][1]=true;
+            bc[ms.getColor(ms.getXSize()-1,ms.getYSize()-1)][0]=true;
+            bc[ms.getColor(ms.getXSize()-1,ms.getYSize()-1)][1]=true;
+            bc[ms.getColor(0,0)][1]=true;
+            boolean b = true;
+            for (int i= 0; i<ms.getNumberOfColors(); i++) b=b&bc[i][ms.getTurnOfPlayer()];
+            if (b) ms.setTurnOfPlayer(1-ms.getTurnOfPlayer());
         }
         ms.setBlockedColors(bc);
         return ms;
@@ -327,15 +330,17 @@ public class ModelState {
         });
     }
 
-    private int[] getScore(){
-        int[] ans = new int[2];
+    public WinEvent getWinEvent(){
+
+        int[] score = new int[2];
         allSameColorAs(new Pair<>(0,0),this)
             .count()
-            .subscribe(o->ans[0]=o.intValue());
+            .subscribe(o->score[0]=o.intValue());
         Pair<Integer,Integer> p =new Pair<>(getXSize()-1,getYSize()-1);
         allSameColorAs(p,this)
             .count()
-            .subscribe(o->ans[1]=o.intValue());
-        return ans;
+            .subscribe(o->score[1]=o.intValue());
+        int winner = isTwoPlayers()&(score[1]>score[0])?1:0;
+        return new WinEvent(isTwoPlayers(), score, winner);
     }
 }
